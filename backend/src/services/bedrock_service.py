@@ -132,16 +132,19 @@ class BedrockService:
             unique_id = uuid.uuid4().hex[:8]
             bucket = get_config().nova_image_bucket
 
-            # Store request
+            # Extract and store input images as separate files, replace bytes in messages with S3 keys
+            sanitized_messages = self._extract_input_images(messages, bucket, timestamp, unique_id)
+
+            # Store request JSON (no bytes remaining)
             request_key = f"requests/{timestamp}_{unique_id}_request.json"
             self.client_manager.s3_client.put_object(
                 Bucket=bucket,
                 Key=request_key,
-                Body=json.dumps(messages),
+                Body=json.dumps(sanitized_messages),
                 ContentType="application/json",
             )
 
-            # Store image if present
+            # Store output image if present
             if result.image_bytes:
                 image_key = f"images/{timestamp}_{unique_id}_output.png"
                 self.client_manager.s3_client.put_object(
@@ -170,6 +173,43 @@ class BedrockService:
 
         except Exception as e:
             app_logger.warning(f"Failed to store response to S3: {e!s}")
+
+    def _extract_input_images(
+        self,
+        messages: list[dict[str, Any]],
+        bucket: str,
+        timestamp: str,
+        unique_id: str,
+    ) -> list[dict[str, Any]]:
+        """Extract input images from messages, store as files, replace with S3 keys."""
+        sanitized: list[dict[str, Any]] = []
+        img_index = 0
+
+        for msg in messages:
+            new_msg: dict[str, Any] = {"role": msg["role"], "content": []}
+            for block in msg.get("content", []):
+                if "image" in block:
+                    img = block["image"]
+                    source = img.get("source", {})
+                    image_bytes = source.get("bytes")
+                    fmt = img.get("format", "png")
+                    if isinstance(image_bytes, bytes):
+                        image_key = f"images/{timestamp}_{unique_id}_input_{img_index}.{fmt}"
+                        self.client_manager.s3_client.put_object(
+                            Bucket=bucket,
+                            Key=image_key,
+                            Body=image_bytes,
+                            ContentType=f"image/{fmt}",
+                        )
+                        new_msg["content"].append({"image": {"format": fmt, "s3_key": image_key}})
+                        img_index += 1
+                    else:
+                        new_msg["content"].append(block)
+                else:
+                    new_msg["content"].append(block)
+            sanitized.append(new_msg)
+
+        return sanitized
 
 
 _bedrock_service: BedrockService | None = None
