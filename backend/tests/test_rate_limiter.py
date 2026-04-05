@@ -47,9 +47,7 @@ class TestRateLimiter:
         now = time.time()
         timestamps = [now - i * 10 for i in range(10)]
         mock_mgr.s3_client.get_object.return_value = {
-            "Body": MagicMock(
-                read=lambda: json.dumps({"timestamps": timestamps}).encode()
-            ),
+            "Body": MagicMock(read=lambda: json.dumps({"timestamps": timestamps}).encode()),
             "ETag": '"etag1"',
         }
 
@@ -67,9 +65,7 @@ class TestRateLimiter:
         # 9 old entries (outside window) + 1 recent
         timestamps = [now - 7200] * 9 + [now - 100]
         mock_mgr.s3_client.get_object.return_value = {
-            "Body": MagicMock(
-                read=lambda: json.dumps({"timestamps": timestamps}).encode()
-            ),
+            "Body": MagicMock(read=lambda: json.dumps({"timestamps": timestamps}).encode()),
             "ETag": '"etag1"',
         }
 
@@ -84,9 +80,7 @@ class TestRateLimiter:
         mock_aws_cls.return_value = mock_mgr
         now = time.time()
         mock_mgr.s3_client.get_object.return_value = {
-            "Body": MagicMock(
-                read=lambda: json.dumps({"timestamps": [now - 100]}).encode()
-            ),
+            "Body": MagicMock(read=lambda: json.dumps({"timestamps": [now - 100]}).encode()),
             "ETag": '"etag1"',
         }
         # First put fails with PreconditionFailed, second succeeds
@@ -119,9 +113,7 @@ class TestRateLimiter:
 
         # Verify put_object was called with IfNoneMatch
         put_calls = mock_mgr.s3_client.put_object.call_args_list
-        assert any(
-            call.kwargs.get("IfNoneMatch") == "*" for call in put_calls
-        )
+        assert any(call.kwargs.get("IfNoneMatch") == "*" for call in put_calls)
 
     @patch("src.services.rate_limiter.AWSClientManager")
     def test_init_race_condition(self, mock_aws_cls: MagicMock) -> None:
@@ -136,9 +128,7 @@ class TestRateLimiter:
                 "GetObject",
             ),
             {
-                "Body": MagicMock(
-                    read=lambda: json.dumps({"timestamps": [now - 100]}).encode()
-                ),
+                "Body": MagicMock(read=lambda: json.dumps({"timestamps": [now - 100]}).encode()),
                 "ETag": '"etag2"',
             },
         ]
@@ -176,9 +166,7 @@ class TestRateLimiter:
         now = time.time()
         timestamps = [now - 100, now - 200, now - 300]
         mock_mgr.s3_client.get_object.return_value = {
-            "Body": MagicMock(
-                read=lambda: json.dumps({"timestamps": timestamps}).encode()
-            ),
+            "Body": MagicMock(read=lambda: json.dumps({"timestamps": timestamps}).encode()),
             "ETag": '"etag1"',
         }
 

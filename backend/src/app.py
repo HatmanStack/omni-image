@@ -50,9 +50,7 @@ def create_app() -> FastAPI:
         )
 
     @application.exception_handler(OmniImageError)
-    async def omni_image_error_handler(
-        request: Request, exc: OmniImageError
-    ) -> JSONResponse:
+    async def omni_image_error_handler(request: Request, exc: OmniImageError) -> JSONResponse:
         return JSONResponse(
             status_code=500,
             content=ErrorResponse(

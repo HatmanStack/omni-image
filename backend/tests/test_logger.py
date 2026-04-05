@@ -1,7 +1,7 @@
 """Tests for optimized logger with CloudWatch batching."""
 
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from src.utils.logger import OptimizedLogger, app_logger, log_performance
 

@@ -23,7 +23,9 @@ class TestBedrockService:
 
     @patch("src.services.bedrock_service.AWSClientManager")
     def test_converse_text_and_image(
-        self, mock_aws_cls: MagicMock, mock_converse_response: dict  # type: ignore[type-arg]
+        self,
+        mock_aws_cls: MagicMock,
+        mock_converse_response: dict,  # type: ignore[type-arg]
     ) -> None:
         mock_mgr = MagicMock()
         mock_aws_cls.return_value = mock_mgr
@@ -96,9 +98,7 @@ class TestBedrockService:
         assert result.image_bytes is not None
 
     @patch("src.services.bedrock_service.AWSClientManager")
-    def test_converse_raises_bedrock_error_on_client_error(
-        self, mock_aws_cls: MagicMock
-    ) -> None:
+    def test_converse_raises_bedrock_error_on_client_error(self, mock_aws_cls: MagicMock) -> None:
         from botocore.exceptions import ClientError
 
         mock_mgr = MagicMock()
@@ -131,7 +131,9 @@ class TestBedrockService:
 
     @patch("src.services.bedrock_service.AWSClientManager")
     def test_store_response_async_submits_to_executor(
-        self, mock_aws_cls: MagicMock, mock_converse_response: dict  # type: ignore[type-arg]
+        self,
+        mock_aws_cls: MagicMock,
+        mock_converse_response: dict,  # type: ignore[type-arg]
     ) -> None:
         mock_mgr = MagicMock()
         mock_aws_cls.return_value = mock_mgr
