@@ -14,8 +14,12 @@ export async function sendChat(request: ChatRequest): Promise<ChatResponse> {
 	}
 
 	if (!response.ok) {
-		const data = await response.json().catch(() => ({ error: 'Unknown error' }));
-		throw new Error(data.error || `Request failed with status ${response.status}`);
+		const data = await response
+			.json()
+			.catch(() => ({ error: 'Unknown error' }));
+		throw new Error(
+			data.error || `Request failed with status ${response.status}`
+		);
 	}
 
 	return response.json();
@@ -36,7 +40,11 @@ export async function getUsage(): Promise<UsageResponse> {
 	return response.json();
 }
 
-export async function getHealth(): Promise<{ status: string; model: string; region: string }> {
+export async function getHealth(): Promise<{
+	status: string;
+	model: string;
+	region: string;
+}> {
 	let response: Response;
 	try {
 		response = await fetch(`${API_URL}/api/health`);

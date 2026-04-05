@@ -46,7 +46,9 @@
 	{#if store.error}
 		<div class="error-banner" role="alert">
 			<span>{store.error}</span>
-			<button onclick={() => store.clearError()} aria-label="Dismiss error">&times;</button>
+			<button onclick={() => store.clearError()} aria-label="Dismiss error"
+				>&times;</button
+			>
 		</div>
 	{/if}
 

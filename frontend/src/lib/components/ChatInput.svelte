@@ -13,7 +13,9 @@
 	let fileInputEl: HTMLInputElement | undefined = $state();
 	let textareaEl: HTMLTextAreaElement | undefined = $state();
 
-	const canSend = $derived(!isLoading && (text.trim().length > 0 || imageFile !== null));
+	const canSend = $derived(
+		!isLoading && (text.trim().length > 0 || imageFile !== null)
+	);
 
 	function handleSend() {
 		if (!canSend) return;
@@ -66,7 +68,11 @@
 	{#if imagePreview}
 		<div class="image-preview">
 			<img src={imagePreview} alt="Upload preview" />
-			<button class="remove-image" onclick={removeImage} aria-label="Remove image">
+			<button
+				class="remove-image"
+				onclick={removeImage}
+				aria-label="Remove image"
+			>
 				&times;
 			</button>
 		</div>
@@ -79,8 +85,17 @@
 			disabled={isLoading}
 			aria-label="Upload image"
 		>
-			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+			<svg
+				width="20"
+				height="20"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+			>
+				<path
+					d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"
+				/>
 			</svg>
 		</button>
 
@@ -108,7 +123,14 @@
 			disabled={!canSend}
 			aria-label="Send message"
 		>
-			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<svg
+				width="20"
+				height="20"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+			>
 				<line x1="22" y1="2" x2="11" y2="13" />
 				<polygon points="22 2 15 22 11 13 2 9 22 2" />
 			</svg>

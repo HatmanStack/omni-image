@@ -21,7 +21,8 @@
 			{#if message.image}
 				<figure class="message-image">
 					<img
-						src="data:image/{message.imageFormat || 'png'};base64,{message.image}"
+						src="data:image/{message.imageFormat ||
+							'png'};base64,{message.image}"
 						alt={message.role === 'user' ? 'Uploaded image' : 'Generated image'}
 					/>
 				</figure>

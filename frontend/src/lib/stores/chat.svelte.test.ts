@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createChatStore, chatMessagesToApiMessages, fileToBase64 } from './chat.svelte';
+import {
+	createChatStore,
+	chatMessagesToApiMessages,
+	fileToBase64
+} from './chat.svelte';
 
 vi.mock('$lib/api', () => ({
 	sendChat: vi.fn()
@@ -148,14 +152,23 @@ describe('chatMessagesToApiMessages', () => {
 			content: [{ type: 'text', text: 'Hello' }]
 		});
 		expect(result[1].content).toHaveLength(2);
-		expect(result[1].content[0]).toEqual({ type: 'image', format: 'png', data: 'base64data' });
+		expect(result[1].content[0]).toEqual({
+			type: 'image',
+			format: 'png',
+			data: 'base64data'
+		});
 		expect(result[1].content[1]).toEqual({ type: 'text', text: 'Hi there' });
 	});
 
 	it('excludes loading messages', () => {
 		const chatMessages = [
 			{ id: '1', role: 'user' as const, text: 'Hello', timestamp: new Date() },
-			{ id: '2', role: 'assistant' as const, isLoading: true, timestamp: new Date() }
+			{
+				id: '2',
+				role: 'assistant' as const,
+				isLoading: true,
+				timestamp: new Date()
+			}
 		];
 
 		const result = chatMessagesToApiMessages(chatMessages);

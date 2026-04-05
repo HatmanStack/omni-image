@@ -73,7 +73,9 @@ describe('ChatInput', () => {
 	it('image file selection shows preview', async () => {
 		render(ChatInput, { props: { onSend: vi.fn(), isLoading: false } });
 
-		const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+		const fileInput = document.querySelector(
+			'input[type="file"]'
+		) as HTMLInputElement;
 		expect(fileInput).toBeTruthy();
 
 		const file = new File(['test'], 'test.png', { type: 'image/png' });
