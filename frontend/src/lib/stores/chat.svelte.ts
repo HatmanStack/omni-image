@@ -1,5 +1,12 @@
+/* eslint-disable svelte/prefer-svelte-reactivity */
 import { sendChat } from '$lib/api';
-import type { ChatMessage, ChatRequest, InferenceConfig, Message, ContentBlock } from '$lib/types';
+import type {
+	ChatMessage,
+	ChatRequest,
+	InferenceConfig,
+	Message,
+	ContentBlock
+} from '$lib/types';
 
 export function fileToBase64(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
@@ -21,7 +28,11 @@ export function chatMessagesToApiMessages(messages: ChatMessage[]): Message[] {
 		.map((m) => {
 			const content: ContentBlock[] = [];
 			if (m.image) {
-				content.push({ type: 'image', format: m.imageFormat || 'png', data: m.image });
+				content.push({
+					type: 'image',
+					format: m.imageFormat || 'png',
+					data: m.image
+				});
 			}
 			if (m.text) {
 				content.push({ type: 'text', text: m.text });
@@ -78,7 +89,9 @@ export function createChatStore() {
 
 			const response = await sendChat(request);
 
-			const loadingIndex = messages.findIndex((m) => m.id === loadingMessage.id);
+			const loadingIndex = messages.findIndex(
+				(m) => m.id === loadingMessage.id
+			);
 			if (loadingIndex !== -1) {
 				messages[loadingIndex] = {
 					id: loadingMessage.id,
@@ -91,7 +104,9 @@ export function createChatStore() {
 				};
 			}
 		} catch (err) {
-			const loadingIndex = messages.findIndex((m) => m.id === loadingMessage.id);
+			const loadingIndex = messages.findIndex(
+				(m) => m.id === loadingMessage.id
+			);
 			if (loadingIndex !== -1) {
 				messages.splice(loadingIndex, 1);
 			}

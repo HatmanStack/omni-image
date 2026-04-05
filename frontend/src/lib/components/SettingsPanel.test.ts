@@ -38,7 +38,9 @@ describe('SettingsPanel', () => {
 		const tempSlider = screen.getByLabelText('Temperature');
 		await fireEvent.input(tempSlider, { target: { value: '0.5' } });
 
-		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ temperature: 0.5 }));
+		expect(onChange).toHaveBeenCalledWith(
+			expect.objectContaining({ temperature: 0.5 })
+		);
 	});
 
 	it('reset button clears a setting', async () => {

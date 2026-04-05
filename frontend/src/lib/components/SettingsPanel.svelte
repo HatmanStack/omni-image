@@ -11,7 +11,10 @@
 
 	let isOpen = $state(false);
 
-	function updateSetting(key: keyof InferenceConfig, value: number | undefined) {
+	function updateSetting(
+		key: keyof InferenceConfig,
+		value: number | undefined
+	) {
 		const updated = { ...settings, [key]: value };
 		if (value === undefined) {
 			delete updated[key];
@@ -36,10 +39,23 @@
 </script>
 
 <div class="settings-panel">
-	<button class="toggle-button" onclick={() => (isOpen = !isOpen)} aria-label="Toggle settings">
-		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+	<button
+		class="toggle-button"
+		onclick={() => (isOpen = !isOpen)}
+		aria-label="Toggle settings"
+	>
+		<svg
+			width="20"
+			height="20"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+		>
 			<circle cx="12" cy="12" r="3" />
-			<path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+			<path
+				d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+			/>
 		</svg>
 	</button>
 
@@ -57,7 +73,11 @@
 						min="1"
 						placeholder="Default"
 					/>
-					<button class="reset-btn" onclick={() => resetSetting('maxTokens')} aria-label="Reset Max Tokens">
+					<button
+						class="reset-btn"
+						onclick={() => resetSetting('maxTokens')}
+						aria-label="Reset Max Tokens"
+					>
 						&times;
 					</button>
 				</div>
@@ -76,8 +96,14 @@
 						max="1"
 						step="0.1"
 					/>
-					<span class="value-display">{settings.temperature?.toFixed(1) ?? '-'}</span>
-					<button class="reset-btn" onclick={() => resetSetting('temperature')} aria-label="Reset Temperature">
+					<span class="value-display"
+						>{settings.temperature?.toFixed(1) ?? '-'}</span
+					>
+					<button
+						class="reset-btn"
+						onclick={() => resetSetting('temperature')}
+						aria-label="Reset Temperature"
+					>
 						&times;
 					</button>
 				</div>
@@ -97,7 +123,11 @@
 						step="0.1"
 					/>
 					<span class="value-display">{settings.topP?.toFixed(1) ?? '-'}</span>
-					<button class="reset-btn" onclick={() => resetSetting('topP')} aria-label="Reset Top P">
+					<button
+						class="reset-btn"
+						onclick={() => resetSetting('topP')}
+						aria-label="Reset Top P"
+					>
 						&times;
 					</button>
 				</div>
@@ -115,7 +145,11 @@
 						min="1"
 						placeholder="Default"
 					/>
-					<button class="reset-btn" onclick={() => resetSetting('topK')} aria-label="Reset Top K">
+					<button
+						class="reset-btn"
+						onclick={() => resetSetting('topK')}
+						aria-label="Reset Top K"
+					>
 						&times;
 					</button>
 				</div>

@@ -24,7 +24,7 @@
 <div class="example-prompts">
 	<p class="prompt-heading">Try an example</p>
 	<div class="prompt-grid">
-		{#each prompts as prompt}
+		{#each prompts as prompt (prompt.text)}
 			<button class="prompt-card" onclick={() => onSelect(prompt.text)}>
 				<span class="prompt-icon">{prompt.icon}</span>
 				<span class="prompt-text">{prompt.text}</span>
