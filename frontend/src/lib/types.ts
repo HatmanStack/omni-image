@@ -4,9 +4,10 @@ export interface TextBlock {
 }
 
 export interface ImageBlock {
-	type: 'image';
-	format: string;
-	data: string;
+	image: {
+		format: string;
+		data: string;
+	};
 }
 
 export type ContentBlock = TextBlock | ImageBlock;

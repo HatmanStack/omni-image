@@ -29,9 +29,10 @@ export function chatMessagesToApiMessages(messages: ChatMessage[]): Message[] {
 			const content: ContentBlock[] = [];
 			if (m.image) {
 				content.push({
-					type: 'image',
-					format: m.imageFormat || 'png',
-					data: m.image
+					image: {
+						format: m.imageFormat || 'png',
+						data: m.image
+					}
 				});
 			}
 			if (m.text) {
