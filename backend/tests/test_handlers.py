@@ -21,9 +21,7 @@ def app():  # type: ignore[no-untyped-def]
 @pytest.fixture
 async def client(app):  # type: ignore[no-untyped-def]
     """Async HTTP client for testing."""
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
 
@@ -80,11 +78,7 @@ class TestChatEndpoint:
 
         response = await client.post(
             "/api/chat",
-            json={
-                "messages": [
-                    {"role": "user", "content": [{"text": "Describe a sunset"}]}
-                ]
-            },
+            json={"messages": [{"role": "user", "content": [{"text": "Describe a sunset"}]}]},
         )
         assert response.status_code == 200
         data = response.json()
@@ -112,11 +106,7 @@ class TestChatEndpoint:
 
         response = await client.post(
             "/api/chat",
-            json={
-                "messages": [
-                    {"role": "user", "content": [{"text": "Generate a cat"}]}
-                ]
-            },
+            json={"messages": [{"role": "user", "content": [{"text": "Generate a cat"}]}]},
         )
         assert response.status_code == 200
         data = response.json()
@@ -134,11 +124,7 @@ class TestChatEndpoint:
 
         response = await client.post(
             "/api/chat",
-            json={
-                "messages": [
-                    {"role": "user", "content": [{"text": "test"}]}
-                ]
-            },
+            json={"messages": [{"role": "user", "content": [{"text": "test"}]}]},
         )
         assert response.status_code == 429
         data = response.json()
@@ -159,11 +145,7 @@ class TestChatEndpoint:
 
         response = await client.post(
             "/api/chat",
-            json={
-                "messages": [
-                    {"role": "user", "content": [{"text": "test"}]}
-                ]
-            },
+            json={"messages": [{"role": "user", "content": [{"text": "test"}]}]},
         )
         assert response.status_code == 502
         data = response.json()

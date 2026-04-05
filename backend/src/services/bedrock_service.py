@@ -68,7 +68,7 @@ class BedrockService:
             app_logger.error(f"Unexpected error in converse: {e!s}")
             raise BedrockError(f"Unexpected error: {e!s}") from e
 
-    def _process_response(self, response: dict[str, Any]) -> ConverseResult:
+    def _process_response(self, response: Any) -> ConverseResult:
         """Process a Converse API response into a ConverseResult."""
         try:
             output = response.get("output", {})
@@ -117,9 +117,7 @@ class BedrockService:
         text = " ".join(texts) if texts else None
         return text, image_bytes, image_format
 
-    def _store_response_async(
-        self, messages: list[dict[str, Any]], result: ConverseResult
-    ) -> None:
+    def _store_response_async(self, messages: list[dict[str, Any]], result: ConverseResult) -> None:
         """Submit storage to thread pool executor (fire-and-forget)."""
         executor = self.client_manager.executor
         if executor is not None:
@@ -127,9 +125,7 @@ class BedrockService:
         else:
             self._store_response_sync(messages, result)
 
-    def _store_response_sync(
-        self, messages: list[dict[str, Any]], result: ConverseResult
-    ) -> None:
+    def _store_response_sync(self, messages: list[dict[str, Any]], result: ConverseResult) -> None:
         """Store request and response to S3 for archival."""
         try:
             timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S_%f")

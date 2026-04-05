@@ -57,9 +57,7 @@ class TestChatRequest:
 
     def test_request_with_inference_config(self) -> None:
         req = ChatRequest(
-            messages=[
-                Message(role="user", content=[TextBlock(text="test")])
-            ],
+            messages=[Message(role="user", content=[TextBlock(text="test")])],
             inferenceConfig=InferenceConfig(maxTokens=500),
         )
         assert req.inferenceConfig is not None

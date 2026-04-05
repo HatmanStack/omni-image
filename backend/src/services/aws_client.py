@@ -102,9 +102,7 @@ class AWSClientManager:
                         )
                         app_logger.info("S3 client initialized")
                     except Exception as e:
-                        raise ConfigurationError(
-                            f"Failed to initialize S3 client: {e!s}"
-                        ) from e
+                        raise ConfigurationError(f"Failed to initialize S3 client: {e!s}") from e
         assert self._s3_client is not None
         return self._s3_client
 

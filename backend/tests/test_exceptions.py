@@ -1,7 +1,5 @@
 """Tests for custom exception hierarchy."""
 
-import pytest
-
 from src.utils.exceptions import (
     BedrockError,
     ConfigurationError,

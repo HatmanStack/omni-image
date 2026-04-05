@@ -8,10 +8,7 @@ import time
 from collections.abc import Callable
 from datetime import UTC, datetime
 from functools import wraps
-from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
-
-if TYPE_CHECKING:
-    from mypy_boto3_logs import CloudWatchLogsClient
+from typing import Any, ParamSpec, TypeVar
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -27,7 +24,7 @@ class OptimizedLogger:
         self.logger = logging.getLogger(__name__)
         self.log_group = log_group
         self.log_stream = "Omni-Stream"
-        self._cloudwatch_client: "CloudWatchLogsClient | None" = None
+        self._cloudwatch_client: Any = None
         self._sequence_token: str | None = None
         self.batch_logs: list[dict[str, Any]] = []
         self.batch_size = 10
@@ -41,14 +38,14 @@ class OptimizedLogger:
         return bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
 
     @property
-    def cloudwatch_client(self) -> "CloudWatchLogsClient | None":
+    def cloudwatch_client(self) -> Any:
         """Lazy initialization of CloudWatch client via AWSClientManager."""
         if self._cloudwatch_client is None and self._is_lambda():
             from src.services.aws_client import AWSClientManager
 
             manager = AWSClientManager()
             if hasattr(manager, "logs_client"):
-                self._cloudwatch_client = manager.logs_client  # type: ignore[attr-defined]
+                self._cloudwatch_client = manager.logs_client
                 if self._cloudwatch_client:
                     self._ensure_log_stream()
         return self._cloudwatch_client
