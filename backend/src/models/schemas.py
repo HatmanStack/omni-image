@@ -36,7 +36,7 @@ VALID_IMAGE_FORMATS = frozenset({"png", "jpeg", "gif", "webp"})
 class ImageSource(BaseModel):
     """Image source with format and base64 data."""
 
-    format: str
+    format: Literal["png", "jpeg", "gif", "webp"]
     data: str
 
 
@@ -56,10 +56,10 @@ class Message(BaseModel):
 class InferenceConfig(BaseModel):
     """Optional inference configuration for the Converse API."""
 
-    maxTokens: int | None = None
-    temperature: float | None = None
-    topP: float | None = None
-    topK: int | None = None
+    maxTokens: int | None = Field(default=None, ge=1, le=100000)
+    temperature: float | None = Field(default=None, ge=0.0, le=1.0)
+    topP: float | None = Field(default=None, ge=0.0, le=1.0)
+    topK: int | None = Field(default=None, ge=1, le=500)
 
 
 class ChatRequest(BaseModel):

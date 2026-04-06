@@ -34,6 +34,7 @@ Resources:
   # S3 Bucket for rate limiting and image storage
   ImageBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
     Properties:
       BucketName: !Sub '${StackName}-images-${AWS::AccountId}'
       BucketEncryption:

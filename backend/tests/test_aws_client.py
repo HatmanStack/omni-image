@@ -66,6 +66,3 @@ class TestAWSClientManager:
 
         assert all(inst is instances[0] for inst in instances)
 
-    def test_executor_exists_after_init(self) -> None:
-        mgr = AWSClientManager()
-        assert mgr.executor is not None

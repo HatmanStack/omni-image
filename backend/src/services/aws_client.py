@@ -1,9 +1,7 @@
-"""AWS client management with thread-safe singleton and async storage."""
+"""AWS client management with thread-safe singleton."""
 
-import atexit
 import threading
-from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 import boto3
 from botocore.config import Config
@@ -27,17 +25,12 @@ class AWSClientManager:
     _bedrock_client: "BedrockRuntimeClient | None" = None
     _s3_client: "S3Client | None" = None
 
-    _executor: ThreadPoolExecutor | None = None
-    MAX_WORKERS: Final[int] = 2
-
     def __new__(cls) -> "AWSClientManager":
         """Thread-safe singleton creation using double-checked locking."""
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
                     cls._instance = super().__new__(cls)
-                    cls._executor = ThreadPoolExecutor(max_workers=cls.MAX_WORKERS)
-                    atexit.register(cls._shutdown_executor)
         return cls._instance
 
     def __init__(self) -> None:
@@ -47,22 +40,12 @@ class AWSClientManager:
             app_logger.info("Initializing AWS Client Manager")
 
     @classmethod
-    def _shutdown_executor(cls) -> None:
-        """Shutdown the thread pool executor on exit."""
-        if cls._executor is not None:
-            cls._executor.shutdown(wait=False)
-            cls._executor = None
-
-    @classmethod
     def _reset(cls) -> None:
         """Reset singleton state for testing. Not for production use."""
         with cls._lock, cls._client_lock:
-            if cls._executor is not None:
-                cls._executor.shutdown(wait=False)
             cls._instance = None
             cls._bedrock_client = None
             cls._s3_client = None
-            cls._executor = None
 
     @property
     def bedrock_client(self) -> "BedrockRuntimeClient":
@@ -106,7 +89,3 @@ class AWSClientManager:
         assert self._s3_client is not None
         return self._s3_client
 
-    @property
-    def executor(self) -> ThreadPoolExecutor | None:
-        """Get the thread pool executor for async operations."""
-        return self._executor

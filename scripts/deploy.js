@@ -97,7 +97,7 @@ s3_bucket = "${deployBucket}"
 s3_prefix = "${config.STACK_NAME}"
 region = "${config.AWS_REGION}"
 capabilities = "CAPABILITY_IAM"
-confirm_changeset = false
+confirm_changeset = true
 `;
 
   fs.writeFileSync(SAMCONFIG_PATH, samconfig);

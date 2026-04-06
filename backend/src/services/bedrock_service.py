@@ -61,12 +61,12 @@ class BedrockService:
         except ClientError as e:
             error_msg = e.response.get("Error", {}).get("Message", str(e))
             app_logger.error(f"Bedrock client error: {error_msg}")
-            raise BedrockError(f"Converse failed: {error_msg}") from e
+            raise BedrockError("Image generation failed") from e
         except BedrockError:
             raise
         except Exception as e:
             app_logger.error(f"Unexpected error in converse: {e!s}")
-            raise BedrockError(f"Unexpected error: {e!s}") from e
+            raise BedrockError("Image generation failed") from e
 
     def _process_response(self, response: Any) -> ConverseResult:
         """Process a Converse API response into a ConverseResult."""

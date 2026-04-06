@@ -1,7 +1,15 @@
 <script lang="ts">
 	import type { ChatMessage } from '$lib/types';
 
+	const VALID_IMAGE_FORMATS = new Set(['png', 'jpeg', 'gif', 'webp']);
+
 	let { message }: { message: ChatMessage } = $props();
+
+	const safeImageFormat = $derived(
+		message.imageFormat && VALID_IMAGE_FORMATS.has(message.imageFormat)
+			? message.imageFormat
+			: 'png'
+	);
 </script>
 
 <article
@@ -21,8 +29,7 @@
 			{#if message.image}
 				<figure class="message-image">
 					<img
-						src="data:image/{message.imageFormat ||
-							'png'};base64,{message.image}"
+						src="data:image/{safeImageFormat};base64,{message.image}"
 						alt={message.role === 'user' ? 'Uploaded image' : 'Generated image'}
 					/>
 				</figure>

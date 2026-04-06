@@ -11,9 +11,7 @@ beforeEach(() => {
 
 describe('sendChat', () => {
 	const request: ChatRequest = {
-		messages: [
-			{ role: 'user', content: [{ text: 'Generate a cat' }] }
-		]
+		messages: [{ role: 'user', content: [{ text: 'Generate a cat' }] }]
 	};
 
 	it('sends correct request body', async () => {

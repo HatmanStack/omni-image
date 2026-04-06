@@ -55,7 +55,7 @@ describe('createChatStore', () => {
 		await store.sendMessage('Generate a cat');
 
 		expect(store.messages).toHaveLength(0);
-		expect(store.error).toBe('Something went wrong');
+		expect(store.error).toBe('Something went wrong. Please try again.');
 		expect(store.isLoading).toBe(false);
 	});
 

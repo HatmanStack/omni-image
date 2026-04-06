@@ -107,9 +107,7 @@ export function createChatStore() {
 
 			const response = await sendChat(request);
 
-			const loadingIndex = messages.findIndex(
-				(m) => m.id === loadingMessageId
-			);
+			const loadingIndex = messages.findIndex((m) => m.id === loadingMessageId);
 			if (loadingIndex !== -1) {
 				messages[loadingIndex] = {
 					id: loadingMessageId,
@@ -130,9 +128,18 @@ export function createChatStore() {
 			messages = messages.filter((m) => !idsToRemove.has(m.id));
 			const errorMessage = err instanceof Error ? err.message : 'Unknown error';
 			if (errorMessage.toLowerCase().includes('rate limit')) {
-				error = `Rate limit reached. Please wait before sending more requests.`;
-			} else {
+				error = 'Rate limit reached. Please wait before sending more requests.';
+			} else if (errorMessage.toLowerCase().includes('network error')) {
+				error = 'Unable to reach the server. Please check your connection.';
+			} else if (errorMessage.toLowerCase().includes('timed out')) {
+				error = 'Request timed out. Please try again.';
+			} else if (
+				errorMessage.startsWith('Unsupported image type') ||
+				errorMessage.startsWith('File too large')
+			) {
 				error = errorMessage;
+			} else {
+				error = 'Something went wrong. Please try again.';
 			}
 		} finally {
 			isLoading = false;

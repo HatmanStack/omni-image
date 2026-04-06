@@ -1,46 +1,34 @@
-"""Tests for optimized logger."""
-
-import os
-from unittest.mock import patch
+"""Tests for application logger."""
 
 import pytest
 
-from src.utils.logger import OptimizedLogger, app_logger, log_performance
+from src.utils.logger import AppLogger, app_logger, log_performance
 
 
-class TestOptimizedLogger:
+class TestAppLogger:
     def test_log_info(self) -> None:
-        logger = OptimizedLogger()
+        logger = AppLogger()
         logger.info("test message")  # should not raise
 
     def test_log_debug(self) -> None:
-        logger = OptimizedLogger()
+        logger = AppLogger()
         logger.debug("debug message")
 
     def test_log_warning(self) -> None:
-        logger = OptimizedLogger()
+        logger = AppLogger()
         logger.warning("warning message")
 
     def test_log_error(self) -> None:
-        logger = OptimizedLogger()
+        logger = AppLogger()
         logger.error("error message")
 
     def test_log_with_invalid_level_defaults_to_info(self) -> None:
-        logger = OptimizedLogger()
+        logger = AppLogger()
         # Should not raise, should default to INFO
         logger.log("test", level="INVALID_LEVEL")
 
-    def test_is_lambda_true(self) -> None:
-        with patch.dict(os.environ, {"AWS_LAMBDA_FUNCTION_NAME": "my-function"}):
-            assert OptimizedLogger._is_lambda() is True
-
-    def test_is_lambda_false(self) -> None:
-        with patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("AWS_LAMBDA_FUNCTION_NAME", None)
-            assert OptimizedLogger._is_lambda() is False
-
     def test_app_logger_is_singleton_instance(self) -> None:
-        assert isinstance(app_logger, OptimizedLogger)
+        assert isinstance(app_logger, AppLogger)
 
 
 class TestLogPerformance:

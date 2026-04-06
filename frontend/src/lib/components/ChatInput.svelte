@@ -35,10 +35,20 @@
 		}
 	}
 
+	const MAX_FILE_SIZE_MB = 5;
+	const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+	let fileError = $state<string | null>(null);
+
 	function handleFileSelect(e: Event) {
 		const input = e.target as HTMLInputElement;
 		const file = input.files?.[0];
 		if (file) {
+			fileError = null;
+			if (file.size > MAX_FILE_SIZE_BYTES) {
+				fileError = `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum is ${MAX_FILE_SIZE_MB}MB.`;
+				if (fileInputEl) fileInputEl.value = '';
+				return;
+			}
 			imageFile = file;
 			const reader = new FileReader();
 			reader.onload = () => {
@@ -65,6 +75,9 @@
 </script>
 
 <div class="chat-input-container">
+	{#if fileError}
+		<div class="file-error" role="alert">{fileError}</div>
+	{/if}
 	{#if imagePreview}
 		<div class="image-preview">
 			<img src={imagePreview} alt="Upload preview" />
@@ -105,12 +118,14 @@
 			accept="image/*"
 			onchange={handleFileSelect}
 			class="file-input-hidden"
+			aria-label="Upload image file"
 		/>
 
 		<textarea
 			bind:this={textareaEl}
 			bind:value={text}
 			placeholder="Describe an image to generate, or upload an image to edit..."
+			aria-label="Message input"
 			rows="1"
 			disabled={isLoading}
 			onkeydown={handleKeyDown}
@@ -143,6 +158,12 @@
 		padding: 12px 16px;
 		background-color: #1a1a2e;
 		border-top: 1px solid #333;
+	}
+
+	.file-error {
+		color: #e94560;
+		font-size: 13px;
+		margin-bottom: 8px;
 	}
 
 	.image-preview {

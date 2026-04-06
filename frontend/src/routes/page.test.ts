@@ -26,9 +26,11 @@ describe('+page.svelte', () => {
 		const sendButton = screen.getByLabelText('Send message');
 		await fireEvent.click(sendButton);
 
-		// Wait for the error to appear
+		// Wait for the error to appear (generic message since raw errors are not exposed)
 		await vi.waitFor(() => {
-			expect(screen.getByText('Test error')).toBeTruthy();
+			expect(
+				screen.getByText('Something went wrong. Please try again.')
+			).toBeTruthy();
 		});
 	});
 
@@ -46,12 +48,16 @@ describe('+page.svelte', () => {
 		await fireEvent.click(sendButton);
 
 		await vi.waitFor(() => {
-			expect(screen.getByText('Dismissable error')).toBeTruthy();
+			expect(
+				screen.getByText('Something went wrong. Please try again.')
+			).toBeTruthy();
 		});
 
 		const dismissButton = screen.getByLabelText('Dismiss error');
 		await fireEvent.click(dismissButton);
 
-		expect(screen.queryByText('Dismissable error')).toBeNull();
+		expect(
+			screen.queryByText('Something went wrong. Please try again.')
+		).toBeNull();
 	});
 });

@@ -1,26 +1,16 @@
-"""Optimized logging with thread safety."""
+"""Application logging with thread safety."""
 
 import logging
-import os
 import time
 from collections.abc import Callable
 from functools import wraps
-from typing import ParamSpec, TypeVar
-
-P = ParamSpec("P")
-R = TypeVar("R")
 
 
-class OptimizedLogger:
+class AppLogger:
     """Thread-safe logger. Lambda streams stdout/stderr to CloudWatch automatically."""
 
     def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
-
-    @staticmethod
-    def _is_lambda() -> bool:
-        """Check if running in Lambda."""
-        return bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
 
     _VALID_LEVELS: frozenset[str] = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
 
@@ -49,10 +39,10 @@ class OptimizedLogger:
 
 
 # Global logger instance
-app_logger = OptimizedLogger()
+app_logger = AppLogger()
 
 
-def log_performance(func: Callable[P, R]) -> Callable[P, R]:
+def log_performance[**P, R](func: Callable[P, R]) -> Callable[P, R]:
     """Decorator to log function performance."""
 
     @wraps(func)

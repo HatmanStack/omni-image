@@ -10,9 +10,13 @@
 	let messageContainer: HTMLElement | undefined = $state();
 
 	$effect(() => {
-		// Auto-scroll when messages change
+		// Auto-scroll when messages change, but only if user is near the bottom
 		if (store.messages.length && messageContainer) {
-			messageContainer.scrollTop = messageContainer.scrollHeight;
+			const { scrollTop, scrollHeight, clientHeight } = messageContainer;
+			const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+			if (isNearBottom) {
+				messageContainer.scrollTop = messageContainer.scrollHeight;
+			}
 		}
 	});
 

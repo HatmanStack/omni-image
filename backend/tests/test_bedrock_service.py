@@ -108,7 +108,7 @@ class TestBedrockService:
         from src.services.bedrock_service import BedrockService
 
         service = BedrockService()
-        with pytest.raises(BedrockError, match="Too many requests"):
+        with pytest.raises(BedrockError, match="Image generation failed"):
             service.converse([{"role": "user", "content": [{"text": "test"}]}])
 
     @patch("src.services.bedrock_service.AWSClientManager")

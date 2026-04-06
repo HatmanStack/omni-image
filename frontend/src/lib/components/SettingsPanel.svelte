@@ -30,6 +30,7 @@
 	function handleNumberInput(key: 'maxTokens' | 'topK', e: Event) {
 		const target = e.target as HTMLInputElement;
 		const val = target.value ? parseInt(target.value, 10) : undefined;
+		if (val !== undefined && val < 1) return;
 		updateSetting(key, val);
 	}
 
@@ -43,6 +44,7 @@
 		class="toggle-button"
 		onclick={() => (isOpen = !isOpen)}
 		aria-label="Toggle settings"
+		aria-expanded={isOpen}
 	>
 		<svg
 			width="20"
@@ -97,7 +99,9 @@
 						step="0.1"
 					/>
 					<span class="value-display"
-						>{settings.temperature !== undefined ? settings.temperature.toFixed(1) : '-'}</span
+						>{settings.temperature !== undefined
+							? settings.temperature.toFixed(1)
+							: '-'}</span
 					>
 					<button
 						class="reset-btn"
@@ -122,7 +126,11 @@
 						max="1"
 						step="0.1"
 					/>
-					<span class="value-display">{settings.topP !== undefined ? settings.topP.toFixed(1) : '-'}</span>
+					<span class="value-display"
+						>{settings.topP !== undefined
+							? settings.topP.toFixed(1)
+							: '-'}</span
+					>
 					<button
 						class="reset-btn"
 						onclick={() => resetSetting('topP')}
