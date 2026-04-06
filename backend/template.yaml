@@ -7,8 +7,8 @@ Parameters:
     Type: String
     Description: Name for this deployment (used to name all resources)
     Default: omni-image
-    AllowedPattern: '^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$'
-    ConstraintDescription: Must start with a lowercase letter, end with a letter or digit, and be at most 63 characters
+    AllowedPattern: '^[a-z]([a-z0-9-]{0,38}[a-z0-9])?$'
+    ConstraintDescription: Must start with a lowercase letter, end with a letter or digit, and be at most 40 characters (derived S3 bucket names must stay under 63)
 
   IncludeDevOrigins:
     Type: String

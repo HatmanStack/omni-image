@@ -11,7 +11,7 @@
  * 5. Updates frontend .env file with PUBLIC_API_URL
  */
 
-const { execSync, execFileSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -125,20 +125,6 @@ function updateEnvFile(apiGatewayUrl) {
   console.log(`Updated frontend .env with API URL: ${apiGatewayUrl}\n`);
 }
 
-function execCommand(command, cwd = BACKEND_DIR) {
-  console.log(`Executing: ${command}\n`);
-
-  try {
-    execSync(command, {
-      cwd,
-      stdio: 'inherit',
-      env: process.env
-    });
-  } catch (error) {
-    console.error(`Command failed: ${command}`);
-    process.exit(1);
-  }
-}
 
 function getStackOutputs(stackName, region) {
   try {
@@ -174,8 +160,8 @@ async function deploy() {
   const stackNameInput = await ask(`Stack Name [${defaults.STACK_NAME}]: `);
   config.STACK_NAME = stackNameInput.trim() || defaults.STACK_NAME;
 
-  if (!/^[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(config.STACK_NAME)) {
-    console.error('Stack name must start with a lowercase letter, end with a letter or digit, contain only lowercase letters, numbers, and hyphens, and be at most 63 characters');
+  if (!/^[a-z](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(config.STACK_NAME)) {
+    console.error('Stack name must start with a lowercase letter, end with a letter or digit, and be at most 40 characters');
     rl.close();
     process.exit(1);
   }

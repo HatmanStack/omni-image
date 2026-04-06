@@ -11,6 +11,7 @@ from src.handlers.health import router as health_router
 from src.models.config import get_config
 from src.models.schemas import ErrorResponse
 from src.utils.exceptions import BedrockError, OmniImageError, RateLimitError
+from src.utils.logger import app_logger
 
 
 def create_app() -> FastAPI:
@@ -61,6 +62,7 @@ def create_app() -> FastAPI:
 
     @application.exception_handler(Exception)
     async def generic_error_handler(request: Request, exc: Exception) -> JSONResponse:
+        app_logger.error(f"Unhandled exception on {request.method} {request.url.path}: {exc!s}")
         return JSONResponse(
             status_code=500,
             content=ErrorResponse(
