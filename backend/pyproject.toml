@@ -2,7 +2,7 @@
 name = "omni-image-backend"
 version = "1.0.0"
 description = "Chat-based image generation with Amazon Nova 2 Omni"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.115",
     "mangum>=0.19",
@@ -54,7 +54,7 @@ known-first-party = ["src"]
 ]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 strict = true
 warn_return_any = true
 warn_unused_ignores = true

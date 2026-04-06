@@ -75,7 +75,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${StackName}-api'
       Handler: lambda_function.lambda_handler
-      Runtime: python3.11
+      Runtime: python3.13
       CodeUri: .
       Description: Chat-based image generation with Nova 2 Omni via Converse API
       MemorySize: 512
