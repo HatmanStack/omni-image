@@ -87,11 +87,13 @@ class TestAppConfig:
             assert config.is_lambda is True
 
     def test_is_lambda_false_when_not_set(self) -> None:
-        from src.models.config import get_config
+        from src.models.config import get_config, reset_config
 
-        os.environ.pop("AWS_LAMBDA_FUNCTION_NAME", None)
-        config = get_config()
-        assert config.is_lambda is False
+        reset_config()
+        env = {k: v for k, v in os.environ.items() if k != "AWS_LAMBDA_FUNCTION_NAME"}
+        with patch.dict(os.environ, env, clear=True):
+            config = get_config()
+            assert config.is_lambda is False
 
     def test_explicit_kwargs_override_env_vars(self) -> None:
         from src.models.config import AppConfig, reset_config

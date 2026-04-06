@@ -50,12 +50,15 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
     # Convert result to response
     image_b64: str | None = None
+    image_format: str | None = None
     if result.image_bytes:
         image_b64 = base64.b64encode(result.image_bytes).decode("utf-8")
+        image_format = result.image_format
 
     return ChatResponse(
         text=result.text,
         image=image_b64,
+        image_format=image_format,
         usage=result.usage,
         latency_ms=result.latency_ms,
     )

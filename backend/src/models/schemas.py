@@ -76,7 +76,8 @@ class ChatResponse(BaseModel):
     """Response payload from the chat endpoint."""
 
     text: str | None = None
-    image: str | None = None  # base64-encoded PNG
+    image: str | None = None  # base64-encoded image
+    image_format: str | None = None
     usage: dict[str, Any] | None = None
     latency_ms: int | None = None
 

@@ -30,6 +30,7 @@ describe('createChatStore', () => {
 		mockSendChat.mockResolvedValueOnce({
 			text: 'Here is your image',
 			image: 'base64imagedata',
+			image_format: 'png',
 			usage: null,
 			latency_ms: 100
 		});
@@ -73,6 +74,7 @@ describe('createChatStore', () => {
 		mockSendChat.mockResolvedValueOnce({
 			text: 'Response',
 			image: null,
+			image_format: null,
 			usage: null,
 			latency_ms: 100
 		});
@@ -110,6 +112,7 @@ describe('createChatStore', () => {
 		mockSendChat.mockResolvedValueOnce({
 			text: 'ok',
 			image: null,
+			image_format: null,
 			usage: null,
 			latency_ms: 50
 		});

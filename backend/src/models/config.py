@@ -66,8 +66,12 @@ class AppConfig:
 
         if "rate_limit" not in explicit:
             self.rate_limit = self._parse_positive_int("RATE_LIMIT", "10")
+        else:
+            self._validate_positive_int("rate_limit", self.rate_limit)
         if "rate_limit_window" not in explicit:
             self.rate_limit_window = self._parse_positive_int("RATE_LIMIT_WINDOW", "3600")
+        else:
+            self._validate_positive_int("rate_limit_window", self.rate_limit_window)
         if "is_lambda" not in explicit:
             self.is_lambda = "AWS_LAMBDA_FUNCTION_NAME" in os.environ
 
@@ -86,6 +90,14 @@ class AppConfig:
         if value <= 0:
             raise ConfigurationError(f"{env_var} must be positive, got: {value}")
         return value
+
+    @staticmethod
+    def _validate_positive_int(name: str, value: object) -> None:
+        """Validate that a value is a positive integer."""
+        if not isinstance(value, int) or isinstance(value, bool):
+            raise ConfigurationError(f"{name} must be an integer, got: {value}")
+        if value <= 0:
+            raise ConfigurationError(f"{name} must be positive, got: {value}")
 
 
 _config: AppConfig | None = None

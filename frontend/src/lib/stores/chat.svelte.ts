@@ -110,7 +110,7 @@ export function createChatStore() {
 					role: 'assistant',
 					text: response.text || undefined,
 					image: response.image || undefined,
-					imageFormat: 'png',
+					imageFormat: response.image_format || 'png',
 					timestamp: new Date(),
 					isLoading: false
 				};

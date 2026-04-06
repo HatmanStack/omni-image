@@ -31,6 +31,7 @@ export interface ChatRequest {
 export interface ChatResponse {
 	text: string | null;
 	image: string | null;
+	image_format: string | null;
 	usage: Record<string, number> | null;
 	latency_ms: number | null;
 }
