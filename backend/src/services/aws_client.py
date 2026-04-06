@@ -88,4 +88,3 @@ class AWSClientManager:
                         raise ConfigurationError(f"Failed to initialize S3 client: {e!s}") from e
         assert self._s3_client is not None
         return self._s3_client
-

@@ -65,4 +65,3 @@ class TestAWSClientManager:
             t.join()
 
         assert all(inst is instances[0] for inst in instances)
-
