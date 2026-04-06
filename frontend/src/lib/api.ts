@@ -58,7 +58,10 @@ export async function getUsage(): Promise<UsageResponse> {
 	let response: Response;
 	try {
 		response = await fetchWithTimeout(`${API_URL}/api/usage`);
-	} catch {
+	} catch (err) {
+		if (err instanceof Error && err.message === 'Request timed out') {
+			throw err;
+		}
 		throw new Error('Network error: unable to reach the server');
 	}
 
@@ -77,7 +80,10 @@ export async function getHealth(): Promise<{
 	let response: Response;
 	try {
 		response = await fetchWithTimeout(`${API_URL}/api/health`);
-	} catch {
+	} catch (err) {
+		if (err instanceof Error && err.message === 'Request timed out') {
+			throw err;
+		}
 		throw new Error('Network error: unable to reach the server');
 	}
 

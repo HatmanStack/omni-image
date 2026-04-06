@@ -54,8 +54,7 @@ describe('createChatStore', () => {
 		const store = createChatStore();
 		await store.sendMessage('Generate a cat');
 
-		expect(store.messages).toHaveLength(1);
-		expect(store.messages[0].role).toBe('user');
+		expect(store.messages).toHaveLength(0);
 		expect(store.error).toBe('Something went wrong');
 		expect(store.isLoading).toBe(false);
 	});
@@ -135,14 +134,16 @@ describe('chatMessagesToApiMessages', () => {
 			{
 				id: '1',
 				role: 'user' as const,
-				text: 'Hello',
+				text: 'Edit this image',
+				image: 'base64data',
+				imageFormat: 'png',
 				timestamp: new Date()
 			},
 			{
 				id: '2',
 				role: 'assistant' as const,
 				text: 'Hi there',
-				image: 'base64data',
+				image: 'assistantimage',
 				imageFormat: 'png',
 				timestamp: new Date()
 			}
@@ -150,18 +151,15 @@ describe('chatMessagesToApiMessages', () => {
 
 		const result = chatMessagesToApiMessages(chatMessages);
 		expect(result).toHaveLength(2);
-		expect(result[0]).toEqual({
-			role: 'user',
-			content: [{ text: 'Hello' }]
+		// User message includes both image and text
+		expect(result[0].content).toHaveLength(2);
+		expect(result[0].content[0]).toEqual({
+			image: { format: 'png', data: 'base64data' }
 		});
-		expect(result[1].content).toHaveLength(2);
-		expect(result[1].content[0]).toEqual({
-			image: {
-				format: 'png',
-				data: 'base64data'
-			}
-		});
-		expect(result[1].content[1]).toEqual({ text: 'Hi there' });
+		expect(result[0].content[1]).toEqual({ text: 'Edit this image' });
+		// Assistant message includes only text (images not replayed)
+		expect(result[1].content).toHaveLength(1);
+		expect(result[1].content[0]).toEqual({ text: 'Hi there' });
 	});
 
 	it('excludes loading messages', () => {

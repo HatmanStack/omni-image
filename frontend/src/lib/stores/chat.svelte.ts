@@ -35,7 +35,7 @@ export function chatMessagesToApiMessages(messages: ChatMessage[]): Message[] {
 		.filter((m) => !m.isLoading)
 		.map((m) => {
 			const content: ContentBlock[] = [];
-			if (m.image) {
+			if (m.image && m.role === 'user') {
 				content.push({
 					image: {
 						format: m.imageFormat || 'png',
@@ -78,8 +78,14 @@ export function createChatStore() {
 
 		try {
 			if (imageFile) {
+				const fmt = MIME_TO_FORMAT[imageFile.type];
+				if (!fmt) {
+					throw new Error(
+						`Unsupported image type: ${imageFile.type || 'unknown'}. Use PNG, JPEG, GIF, or WebP.`
+					);
+				}
 				userMessage.image = await fileToBase64(imageFile);
-				userMessage.imageFormat = MIME_TO_FORMAT[imageFile.type] ?? 'png';
+				userMessage.imageFormat = fmt;
 			}
 
 			messages.push(userMessage);
@@ -116,14 +122,12 @@ export function createChatStore() {
 				};
 			}
 		} catch (err) {
+			// Remove loading placeholder and failed user message
+			const idsToRemove = new Set<string>([userMessage.id]);
 			if (loadingMessageId) {
-				const loadingIndex = messages.findIndex(
-					(m) => m.id === loadingMessageId
-				);
-				if (loadingIndex !== -1) {
-					messages.splice(loadingIndex, 1);
-				}
+				idsToRemove.add(loadingMessageId);
 			}
+			messages = messages.filter((m) => !idsToRemove.has(m.id));
 			const errorMessage = err instanceof Error ? err.message : 'Unknown error';
 			if (errorMessage.toLowerCase().includes('rate limit')) {
 				error = `Rate limit reached. Please wait before sending more requests.`;

@@ -172,7 +172,8 @@ async function deploy() {
 
   // Prompt for dev origins
   const devOriginsInput = await ask(`Include Dev Origins (allows all origins) [${defaults.INCLUDE_DEV_ORIGINS}]: `);
-  config.INCLUDE_DEV_ORIGINS = devOriginsInput.trim() || defaults.INCLUDE_DEV_ORIGINS;
+  const rawDevOrigins = (devOriginsInput.trim() || defaults.INCLUDE_DEV_ORIGINS).toLowerCase();
+  config.INCLUDE_DEV_ORIGINS = ['true', 'yes', '1'].includes(rawDevOrigins) ? 'true' : 'false';
 
   // Prompt for production origins
   const prodOriginsDisplay = defaults.PRODUCTION_ORIGINS || '(none)';
