@@ -224,16 +224,26 @@ async function deploy() {
 
   // Build Lambda function
   console.log('Building Lambda function...\n');
-  execCommand('sam build');
+  try {
+    execFileSync('sam', ['build'], { cwd: BACKEND_DIR, stdio: 'inherit', env: process.env });
+  } catch (error) {
+    console.error('sam build failed');
+    process.exit(1);
+  }
 
   // Deploy to AWS
   console.log('\nDeploying to AWS...\n');
   const productionOrigins = config.PRODUCTION_ORIGINS || '';
-  const paramOverrides = `StackName=${config.STACK_NAME} IncludeDevOrigins=${config.INCLUDE_DEV_ORIGINS} ProductionOrigins=${productionOrigins}`;
+  const overrides = [
+    `StackName=${config.STACK_NAME}`,
+    `IncludeDevOrigins=${config.INCLUDE_DEV_ORIGINS}`,
+    `BedrockRegion=${config.AWS_REGION}`,
+    `ProductionOrigins=${productionOrigins}`
+  ];
 
-  console.log(`Executing: sam deploy --parameter-overrides ${paramOverrides}\n`);
+  console.log(`Executing: sam deploy --parameter-overrides ${overrides.join(' ')}\n`);
   try {
-    execFileSync('sam', ['deploy', '--parameter-overrides', paramOverrides], {
+    execFileSync('sam', ['deploy', '--parameter-overrides', ...overrides], {
       cwd: BACKEND_DIR,
       stdio: 'inherit',
       env: process.env

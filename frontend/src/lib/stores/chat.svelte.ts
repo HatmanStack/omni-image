@@ -44,7 +44,7 @@ export function chatMessagesToApiMessages(messages: ChatMessage[]): Message[] {
 				});
 			}
 			if (m.text) {
-				content.push({ type: 'text', text: m.text });
+				content.push({ text: m.text });
 			}
 			return { role: m.role, content };
 		});

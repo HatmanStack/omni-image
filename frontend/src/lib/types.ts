@@ -1,5 +1,4 @@
 export interface TextBlock {
-	type: 'text';
 	text: string;
 }
 

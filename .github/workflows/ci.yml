@@ -67,10 +67,8 @@ jobs:
         run: cd backend && uv pip install --system -e .
       - name: Install test dependencies
         run: cd backend && uv pip install --system pytest pytest-cov httpx anyio
-      - name: Run tests
-        run: cd backend && pytest tests/ -v --tb=short -m "not integration"
       - name: Run tests with coverage
-        run: cd backend && pytest tests/ --cov=src --cov-report=term-missing --cov-fail-under=75 -m "not integration"
+        run: cd backend && pytest tests/ -v --tb=short --cov=src --cov-report=term-missing --cov-fail-under=75 -m "not integration"
 
   frontend-lint:
     name: Frontend Lint
@@ -133,7 +131,7 @@ jobs:
       - name: Check conventional commits
         run: |
           COMMITS=$(git log --format='%s' origin/${{ github.base_ref }}..HEAD)
-          PATTERN='^(feat|fix|docs|test|chore|ci|refactor|style|build|perf)(\(.+\))?: .+'
+          PATTERN='^(feat|fix|docs|test|chore|ci|refactor|style|build|perf|revert)(\(.+\))?: .+'
           FAILED=0
           while IFS= read -r commit; do
             if [ -n "$commit" ] && ! echo "$commit" | grep -qE "$PATTERN"; then

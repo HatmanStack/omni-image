@@ -2,26 +2,44 @@ import { API_URL } from './config';
 import type { ChatRequest, ChatResponse, UsageResponse } from './types';
 
 const CHAT_TIMEOUT_MS = 125_000;
+const DEFAULT_TIMEOUT_MS = 10_000;
 
-export async function sendChat(request: ChatRequest): Promise<ChatResponse> {
+async function fetchWithTimeout(
+	input: string,
+	init?: RequestInit,
+	ms = DEFAULT_TIMEOUT_MS
+): Promise<Response> {
 	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS);
-
-	let response: Response;
+	const id = setTimeout(() => controller.abort(), ms);
 	try {
-		response = await fetch(`${API_URL}/api/chat`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(request),
-			signal: controller.signal
-		});
+		return await fetch(input, { ...init, signal: controller.signal });
 	} catch (err) {
 		if (err instanceof DOMException && err.name === 'AbortError') {
 			throw new Error('Request timed out');
 		}
-		throw new Error('Network error: unable to reach the server');
+		throw err;
 	} finally {
-		clearTimeout(timeout);
+		clearTimeout(id);
+	}
+}
+
+export async function sendChat(request: ChatRequest): Promise<ChatResponse> {
+	let response: Response;
+	try {
+		response = await fetchWithTimeout(
+			`${API_URL}/api/chat`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(request)
+			},
+			CHAT_TIMEOUT_MS
+		);
+	} catch (err) {
+		if (err instanceof Error && err.message === 'Request timed out') {
+			throw err;
+		}
+		throw new Error('Network error: unable to reach the server');
 	}
 
 	if (!response.ok) {
@@ -39,7 +57,7 @@ export async function sendChat(request: ChatRequest): Promise<ChatResponse> {
 export async function getUsage(): Promise<UsageResponse> {
 	let response: Response;
 	try {
-		response = await fetch(`${API_URL}/api/usage`);
+		response = await fetchWithTimeout(`${API_URL}/api/usage`);
 	} catch {
 		throw new Error('Network error: unable to reach the server');
 	}
@@ -58,7 +76,7 @@ export async function getHealth(): Promise<{
 }> {
 	let response: Response;
 	try {
-		response = await fetch(`${API_URL}/api/health`);
+		response = await fetchWithTimeout(`${API_URL}/api/health`);
 	} catch {
 		throw new Error('Network error: unable to reach the server');
 	}

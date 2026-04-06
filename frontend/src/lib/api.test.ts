@@ -12,7 +12,7 @@ beforeEach(() => {
 describe('sendChat', () => {
 	const request: ChatRequest = {
 		messages: [
-			{ role: 'user', content: [{ type: 'text', text: 'Generate a cat' }] }
+			{ role: 'user', content: [{ text: 'Generate a cat' }] }
 		]
 	};
 

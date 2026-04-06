@@ -149,7 +149,7 @@ describe('chatMessagesToApiMessages', () => {
 		expect(result).toHaveLength(2);
 		expect(result[0]).toEqual({
 			role: 'user',
-			content: [{ type: 'text', text: 'Hello' }]
+			content: [{ text: 'Hello' }]
 		});
 		expect(result[1].content).toHaveLength(2);
 		expect(result[1].content[0]).toEqual({
@@ -158,7 +158,7 @@ describe('chatMessagesToApiMessages', () => {
 				data: 'base64data'
 			}
 		});
-		expect(result[1].content[1]).toEqual({ type: 'text', text: 'Hi there' });
+		expect(result[1].content[1]).toEqual({ text: 'Hi there' });
 	});
 
 	it('excludes loading messages', () => {
