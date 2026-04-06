@@ -76,6 +76,10 @@ PRODUCTION_ORIGINS=${config.PRODUCTION_ORIGINS || ''}
 
 function generateSamConfig(config) {
   const deployBucket = `sam-deploy-${config.STACK_NAME}-${config.AWS_REGION}`;
+  if (deployBucket.length > 63) {
+    console.error(`Derived S3 bucket name "${deployBucket}" is ${deployBucket.length} chars (max 63). Use a shorter stack name.`);
+    process.exit(1);
+  }
   const stackName = `${config.STACK_NAME}-stack`;
 
   const samconfig = `version = 0.1
@@ -180,7 +184,12 @@ async function deploy() {
   console.log('\nProduction Origins: Comma-separated list of allowed origins for CORS');
   console.log('Example: https://myapp.example.com,https://www.myapp.example.com');
   const prodOriginsInput = await ask(`Production Origins [${prodOriginsDisplay}]: `);
-  config.PRODUCTION_ORIGINS = prodOriginsInput.trim() || defaults.PRODUCTION_ORIGINS;
+  const rawOrigins = prodOriginsInput.trim() || defaults.PRODUCTION_ORIGINS;
+  config.PRODUCTION_ORIGINS = rawOrigins
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean)
+    .join(',');
 
   rl.close();
 
