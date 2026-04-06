@@ -1,0 +1,215 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Omni Image - Chat-based image generation with Nova 2 Omni
+
+Parameters:
+  StackName:
+    Type: String
+    Description: Name for this deployment (used to name all resources)
+    Default: omni-image
+    AllowedPattern: '^[a-z]([a-z0-9-]{0,38}[a-z0-9])?$'
+    ConstraintDescription: Must start with a lowercase letter, end with a letter or digit, and be at most 40 characters (derived S3 bucket names must stay under 63)
+
+  IncludeDevOrigins:
+    Type: String
+    Description: Whether to include wildcard (*) origins in CORS for local development
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+
+  BedrockRegion:
+    Type: String
+    Description: AWS region for Bedrock API calls
+    Default: us-west-2
+
+  ProductionOrigins:
+    Type: CommaDelimitedList
+    Description: Comma-separated list of production origins for CORS
+    Default: ''
+
+Conditions:
+  IsDevMode: !Equals [!Ref IncludeDevOrigins, 'true']
+  HasProductionOrigins: !Not [!Equals [!Select [0, !Ref ProductionOrigins], '']]
+
+Resources:
+  # S3 Bucket for rate limiting and image storage
+  ImageBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub '${StackName}-images-${AWS::AccountId}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldRateLimitData
+            Status: Enabled
+            Prefix: rate-limit/
+            ExpirationInDays: 7
+          - Id: DeleteOldRequests
+            Status: Enabled
+            Prefix: requests/
+            ExpirationInDays: 90
+          - Id: DeleteOldResponses
+            Status: Enabled
+            Prefix: responses/
+            ExpirationInDays: 90
+          - Id: DeleteOldImages
+            Status: Enabled
+            Prefix: images/
+            ExpirationInDays: 90
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Application
+          Value: OmniImage
+        - Key: StackName
+          Value: !Ref StackName
+
+  # Lambda Function
+  OmniImageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${StackName}-api'
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.13
+      CodeUri: .
+      Description: Chat-based image generation with Nova 2 Omni via Converse API
+      MemorySize: 512
+      Timeout: 120
+      Environment:
+        Variables:
+          NOVA_IMAGE_BUCKET: !Ref ImageBucket
+          BEDROCK_REGION: !Ref BedrockRegion
+          ALLOWED_ORIGINS: !If
+            - IsDevMode
+            - '*'
+            - !If
+              - HasProductionOrigins
+              - !Join [',', !Ref ProductionOrigins]
+              - 'https://localhost'
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource: !Sub '${ImageBucket.Arn}/*'
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !GetAtt ImageBucket.Arn
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource:
+                - !Sub 'arn:aws:bedrock:${BedrockRegion}::foundation-model/amazon.nova-2-omni-v1:0'
+                - !Sub 'arn:aws:bedrock:${BedrockRegion}:${AWS::AccountId}:inference-profile/us.amazon.nova-2-omni-v1:0'
+      Tags:
+        Application: OmniImage
+        StackName: !Ref StackName
+
+  # API Gateway v2 HTTP API
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub '${StackName}-api'
+      ProtocolType: HTTP
+      Tags:
+        Application: OmniImage
+        StackName: !Ref StackName
+      CorsConfiguration:
+        AllowOrigins: !If
+          - IsDevMode
+          - ['*']
+          - !If
+            - HasProductionOrigins
+            - !Ref ProductionOrigins
+            - ['https://localhost']
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+        MaxAge: 300
+
+  # API Gateway Stage
+  HttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: $default
+      AutoDeploy: true
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 10
+        ThrottlingRateLimit: 100
+
+  # Lambda Integration
+  LambdaIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt OmniImageFunction.Arn
+      PayloadFormatVersion: '2.0'
+
+  # Routes
+  PostChatRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /api/chat'
+      Target: !Sub 'integrations/${LambdaIntegration}'
+
+  GetHealthRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/health'
+      Target: !Sub 'integrations/${LambdaIntegration}'
+
+  GetUsageRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/usage'
+      Target: !Sub 'integrations/${LambdaIntegration}'
+
+  # Lambda Permission for API Gateway
+  ApiGatewayInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref OmniImageFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*'
+
+Outputs:
+  ApiGatewayUrl:
+    Description: API Gateway URL
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiGatewayUrl'
+
+  S3BucketName:
+    Description: S3 Bucket for image storage and rate limiting
+    Value: !Ref ImageBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-S3BucketName'
+
+  FunctionName:
+    Description: Lambda Function Name
+    Value: !Ref OmniImageFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-FunctionName'
+
+  FunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt OmniImageFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-FunctionArn'

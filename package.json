@@ -1,0 +1,7 @@
+{
+  "name": "omni-image",
+  "private": true,
+  "scripts": {
+    "deploy": "node scripts/deploy.js"
+  }
+}
