@@ -134,7 +134,7 @@ jobs:
           PATTERN='^(feat|fix|docs|test|chore|ci|refactor|style|build|perf|revert)(\(.+\))?: .+'
           FAILED=0
           while IFS= read -r commit; do
-            if [ -n "$commit" ] && ! echo "$commit" | grep -qE "$PATTERN"; then
+            if [ -n "$commit" ] && echo "$commit" | grep -qv "^Merge " && ! echo "$commit" | grep -qE "$PATTERN"; then
               echo "Non-conventional commit: $commit"
               FAILED=1
             fi

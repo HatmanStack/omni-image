@@ -104,8 +104,7 @@ class RateLimiter:
                 if error_code in ("AccessDenied", "InvalidAccessKeyId", "SignatureDoesNotMatch"):
                     raise  # Bubbles up to fail-closed handler
                 app_logger.warning(
-                    f"Rate limit S3 error (fail-open): {error_code}. "
-                    "Request allowed."
+                    f"Rate limit S3 error (fail-open): {error_code}. Request allowed."
                 )
                 return True  # Fail open for transient errors
 
