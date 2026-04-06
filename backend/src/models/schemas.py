@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # --- Dataclasses (internal) ---
 
@@ -30,6 +30,9 @@ class TextBlock(BaseModel):
     text: str
 
 
+VALID_IMAGE_FORMATS = frozenset({"png", "jpeg", "gif", "webp"})
+
+
 class ImageSource(BaseModel):
     """Image source with format and base64 data."""
 
@@ -40,14 +43,14 @@ class ImageSource(BaseModel):
 class ImageBlock(BaseModel):
     """Image content block."""
 
-    image: dict[str, Any]
+    image: ImageSource
 
 
 class Message(BaseModel):
     """A single message in the conversation."""
 
     role: Literal["user", "assistant"]
-    content: list[TextBlock | ImageBlock]
+    content: list[TextBlock | ImageBlock] = Field(min_length=1)
 
 
 class InferenceConfig(BaseModel):
@@ -62,7 +65,7 @@ class InferenceConfig(BaseModel):
 class ChatRequest(BaseModel):
     """Request payload for the chat endpoint."""
 
-    messages: list[Message]
+    messages: list[Message] = Field(min_length=1)
     inferenceConfig: InferenceConfig | None = None
 
 

@@ -1,16 +1,27 @@
 import { API_URL } from './config';
 import type { ChatRequest, ChatResponse, UsageResponse } from './types';
 
+const CHAT_TIMEOUT_MS = 125_000;
+
 export async function sendChat(request: ChatRequest): Promise<ChatResponse> {
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS);
+
 	let response: Response;
 	try {
 		response = await fetch(`${API_URL}/api/chat`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(request)
+			body: JSON.stringify(request),
+			signal: controller.signal
 		});
-	} catch {
+	} catch (err) {
+		if (err instanceof DOMException && err.name === 'AbortError') {
+			throw new Error('Request timed out');
+		}
 		throw new Error('Network error: unable to reach the server');
+	} finally {
+		clearTimeout(timeout);
 	}
 
 	if (!response.ok) {

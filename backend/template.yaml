@@ -7,14 +7,19 @@ Parameters:
     Type: String
     Description: Name for this deployment (used to name all resources)
     Default: omni-image
-    AllowedPattern: '^[a-z][a-z0-9-]*$'
-    ConstraintDescription: Must start with lowercase letter, contain only lowercase letters, numbers, and hyphens
+    AllowedPattern: '^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$'
+    ConstraintDescription: Must start with a lowercase letter, end with a letter or digit, and be at most 63 characters
 
   IncludeDevOrigins:
     Type: String
     Description: Whether to include wildcard (*) origins in CORS for local development
     Default: 'false'
     AllowedValues: ['true', 'false']
+
+  BedrockRegion:
+    Type: String
+    Description: AWS region for Bedrock API calls
+    Default: us-west-2
 
   ProductionOrigins:
     Type: CommaDelimitedList
@@ -31,11 +36,27 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub '${StackName}-images-${AWS::AccountId}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
       LifecycleConfiguration:
         Rules:
           - Id: DeleteOldRateLimitData
             Status: Enabled
             Prefix: rate-limit/
+            ExpirationInDays: 7
+          - Id: DeleteOldRequests
+            Status: Enabled
+            Prefix: requests/
+            ExpirationInDays: 90
+          - Id: DeleteOldResponses
+            Status: Enabled
+            Prefix: responses/
+            ExpirationInDays: 90
+          - Id: DeleteOldImages
+            Status: Enabled
+            Prefix: images/
             ExpirationInDays: 90
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -62,7 +83,7 @@ Resources:
       Environment:
         Variables:
           NOVA_IMAGE_BUCKET: !Ref ImageBucket
-          BEDROCK_REGION: us-west-2
+          BEDROCK_REGION: !Ref BedrockRegion
           ALLOWED_ORIGINS: !If
             - IsDevMode
             - '*'
@@ -84,7 +105,9 @@ Resources:
             - Effect: Allow
               Action:
                 - bedrock:InvokeModel
-              Resource: !Sub 'arn:aws:bedrock:us-west-2::foundation-model/us.amazon.nova-2-omni-v1:0'
+              Resource:
+                - !Sub 'arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-omni-v1:0'
+                - !Sub 'arn:aws:bedrock:us-west-2:${AWS::AccountId}:inference-profile/us.amazon.nova-2-omni-v1:0'
       Tags:
         Application: OmniImage
         StackName: !Ref StackName

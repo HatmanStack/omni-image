@@ -62,18 +62,30 @@ class AppConfig:
         if not self.log_level:
             self.log_level = os.getenv("LOG_LEVEL", "INFO")
         if not self.allowed_origins:
-            self.allowed_origins = os.getenv("ALLOWED_ORIGINS", "*")
+            self.allowed_origins = os.getenv("ALLOWED_ORIGINS", "")
 
         if "rate_limit" not in explicit:
-            self.rate_limit = int(os.getenv("RATE_LIMIT", "10"))
+            self.rate_limit = self._parse_positive_int("RATE_LIMIT", "10")
         if "rate_limit_window" not in explicit:
-            self.rate_limit_window = int(os.getenv("RATE_LIMIT_WINDOW", "3600"))
+            self.rate_limit_window = self._parse_positive_int("RATE_LIMIT_WINDOW", "3600")
         if "is_lambda" not in explicit:
             self.is_lambda = "AWS_LAMBDA_FUNCTION_NAME" in os.environ
 
         # Validation
         if not self.nova_image_bucket:
             raise ConfigurationError("NOVA_IMAGE_BUCKET is required")
+
+    @staticmethod
+    def _parse_positive_int(env_var: str, default: str) -> int:
+        """Parse an env var as a positive integer."""
+        raw = os.getenv(env_var, default)
+        try:
+            value = int(raw)
+        except ValueError as e:
+            raise ConfigurationError(f"{env_var} must be an integer, got: {raw}") from e
+        if value <= 0:
+            raise ConfigurationError(f"{env_var} must be positive, got: {value}")
+        return value
 
 
 _config: AppConfig | None = None

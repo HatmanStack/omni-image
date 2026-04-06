@@ -54,7 +54,7 @@ class BedrockService:
 
             result = self._process_response(response)
 
-            self._store_response_async(messages, result)
+            self._store_response(messages, result)
 
             return result
 
@@ -117,15 +117,7 @@ class BedrockService:
         text = " ".join(texts) if texts else None
         return text, image_bytes, image_format
 
-    def _store_response_async(self, messages: list[dict[str, Any]], result: ConverseResult) -> None:
-        """Submit storage to thread pool executor (fire-and-forget)."""
-        executor = self.client_manager.executor
-        if executor is not None:
-            executor.submit(self._store_response_sync, messages, result)
-        else:
-            self._store_response_sync(messages, result)
-
-    def _store_response_sync(self, messages: list[dict[str, Any]], result: ConverseResult) -> None:
+    def _store_response(self, messages: list[dict[str, Any]], result: ConverseResult) -> None:
         """Store request and response to S3 for archival."""
         try:
             timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S_%f")
@@ -146,12 +138,12 @@ class BedrockService:
 
             # Store output image if present
             if result.image_bytes:
-                image_key = f"images/{timestamp}_{unique_id}_output.png"
+                image_key = f"images/{timestamp}_{unique_id}_output.{result.image_format}"
                 self.client_manager.s3_client.put_object(
                     Bucket=bucket,
                     Key=image_key,
                     Body=result.image_bytes,
-                    ContentType="image/png",
+                    ContentType=f"image/{result.image_format}",
                 )
 
             # Store text response

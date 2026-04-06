@@ -6,7 +6,7 @@ import json
 import time
 from typing import Any, Final, TypedDict
 
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, NoCredentialsError
 
 from src.models.config import get_config
 from src.services.aws_client import AWSClientManager
@@ -44,6 +44,18 @@ class RateLimiter:
                 raise RateLimitError()
         except RateLimitError:
             raise
+        except (NoCredentialsError, PermissionError) as e:
+            app_logger.error(f"Rate limiter credential/config error (fail-closed): {e!s}")
+            raise RateLimitError("Service temporarily unavailable") from e
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code", "")
+            if error_code in ("AccessDenied", "InvalidAccessKeyId", "SignatureDoesNotMatch"):
+                app_logger.error(f"Rate limiter auth error (fail-closed): {error_code}")
+                raise RateLimitError("Service temporarily unavailable") from e
+            app_logger.error(
+                f"Rate limiter fail-open: {error_code}: {e!s}. "
+                "Request allowed despite rate limit check failure."
+            )
         except Exception as e:
             app_logger.error(
                 f"Rate limiter fail-open: {type(e).__name__}: {e!s}. "
@@ -84,16 +96,18 @@ class RateLimiter:
                     raise
 
             except ClientError as e:
-                if e.response.get("Error", {}).get("Code") == "NoSuchKey":
+                error_code = e.response.get("Error", {}).get("Code", "")
+                if error_code == "NoSuchKey":
                     if self._try_initialize():
                         return True
                     continue
+                if error_code in ("AccessDenied", "InvalidAccessKeyId", "SignatureDoesNotMatch"):
+                    raise  # Bubbles up to fail-closed handler
                 app_logger.warning(
-                    f"Rate limit S3 error (fail-open): "
-                    f"{e.response.get('Error', {}).get('Code', 'unknown')}. "
+                    f"Rate limit S3 error (fail-open): {error_code}. "
                     "Request allowed."
                 )
-                return True  # Fail open
+                return True  # Fail open for transient errors
 
         app_logger.warning("Rate limit check exhausted retries, allowing request")
         return True

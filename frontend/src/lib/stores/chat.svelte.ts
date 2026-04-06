@@ -8,6 +8,14 @@ import type {
 	ContentBlock
 } from '$lib/types';
 
+const MIME_TO_FORMAT: Record<string, string> = {
+	'image/jpeg': 'jpeg',
+	'image/jpg': 'jpeg',
+	'image/png': 'png',
+	'image/gif': 'gif',
+	'image/webp': 'webp'
+};
+
 export function fileToBase64(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
@@ -63,25 +71,28 @@ export function createChatStore() {
 			timestamp: new Date()
 		};
 
-		if (imageFile) {
-			userMessage.image = await fileToBase64(imageFile);
-			userMessage.imageFormat = imageFile.type.split('/')[1] || 'png';
-		}
-
-		messages.push(userMessage);
-
-		const loadingMessage: ChatMessage = {
-			id: generateId(),
-			role: 'assistant',
-			isLoading: true,
-			timestamp: new Date()
-		};
-		messages.push(loadingMessage);
-
 		isLoading = true;
 		error = null;
 
+		let loadingMessageId: string | null = null;
+
 		try {
+			if (imageFile) {
+				userMessage.image = await fileToBase64(imageFile);
+				userMessage.imageFormat = MIME_TO_FORMAT[imageFile.type] ?? 'png';
+			}
+
+			messages.push(userMessage);
+
+			const loadingMessage: ChatMessage = {
+				id: generateId(),
+				role: 'assistant',
+				isLoading: true,
+				timestamp: new Date()
+			};
+			loadingMessageId = loadingMessage.id;
+			messages.push(loadingMessage);
+
 			const apiMessages = chatMessagesToApiMessages(messages);
 			const request: ChatRequest = { messages: apiMessages };
 			if (Object.keys(settings).length > 0) {
@@ -91,11 +102,11 @@ export function createChatStore() {
 			const response = await sendChat(request);
 
 			const loadingIndex = messages.findIndex(
-				(m) => m.id === loadingMessage.id
+				(m) => m.id === loadingMessageId
 			);
 			if (loadingIndex !== -1) {
 				messages[loadingIndex] = {
-					id: loadingMessage.id,
+					id: loadingMessageId,
 					role: 'assistant',
 					text: response.text || undefined,
 					image: response.image || undefined,
@@ -105,11 +116,13 @@ export function createChatStore() {
 				};
 			}
 		} catch (err) {
-			const loadingIndex = messages.findIndex(
-				(m) => m.id === loadingMessage.id
-			);
-			if (loadingIndex !== -1) {
-				messages.splice(loadingIndex, 1);
+			if (loadingMessageId) {
+				const loadingIndex = messages.findIndex(
+					(m) => m.id === loadingMessageId
+				);
+				if (loadingIndex !== -1) {
+					messages.splice(loadingIndex, 1);
+				}
 			}
 			const errorMessage = err instanceof Error ? err.message : 'Unknown error';
 			if (errorMessage.toLowerCase().includes('rate limit')) {

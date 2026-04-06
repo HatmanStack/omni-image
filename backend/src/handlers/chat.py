@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import base64
+import binascii
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from src.models.schemas import (
+    VALID_IMAGE_FORMATS,
     ChatRequest,
     ChatResponse,
     ImageBlock,
@@ -70,10 +72,19 @@ def _convert_messages(messages: list[Any]) -> list[dict[str, Any]]:
             if isinstance(block, TextBlock):
                 content_blocks.append({"text": block.text})
             elif isinstance(block, ImageBlock):
-                img = block.image
-                fmt = img.get("format", "png")
-                data_b64 = img.get("data", "")
-                image_bytes = base64.b64decode(data_b64)
+                fmt = block.image.format
+                if fmt not in VALID_IMAGE_FORMATS:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Unsupported image format: {fmt}",
+                    )
+                try:
+                    image_bytes = base64.b64decode(block.image.data)
+                except binascii.Error as e:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Invalid base64 image data",
+                    ) from e
                 content_blocks.append(
                     {
                         "image": {

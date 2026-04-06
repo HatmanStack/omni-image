@@ -1,7 +1,9 @@
-"""Tests for optimized logger with CloudWatch batching."""
+"""Tests for optimized logger."""
 
 import os
 from unittest.mock import patch
+
+import pytest
 
 from src.utils.logger import OptimizedLogger, app_logger, log_performance
 
@@ -37,23 +39,8 @@ class TestOptimizedLogger:
             os.environ.pop("AWS_LAMBDA_FUNCTION_NAME", None)
             assert OptimizedLogger._is_lambda() is False
 
-    def test_cloudwatch_batching_skipped_when_not_lambda(self) -> None:
-        with patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("AWS_LAMBDA_FUNCTION_NAME", None)
-            logger = OptimizedLogger()
-            logger.log("test message")
-            assert len(logger.batch_logs) == 0
-
     def test_app_logger_is_singleton_instance(self) -> None:
         assert isinstance(app_logger, OptimizedLogger)
-
-    def test_log_group_default(self) -> None:
-        logger = OptimizedLogger()
-        assert logger.log_group == "/aws/lambda/omni-image"
-
-    def test_log_stream_default(self) -> None:
-        logger = OptimizedLogger()
-        assert logger.log_stream == "Omni-Stream"
 
 
 class TestLogPerformance:
@@ -69,8 +56,6 @@ class TestLogPerformance:
         @log_performance
         def failing_func() -> None:
             raise ValueError("test error")
-
-        import pytest
 
         with pytest.raises(ValueError, match="test error"):
             failing_func()

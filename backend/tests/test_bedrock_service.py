@@ -30,7 +30,6 @@ class TestBedrockService:
         mock_mgr = MagicMock()
         mock_aws_cls.return_value = mock_mgr
         mock_mgr.bedrock_client.converse.return_value = mock_converse_response
-        mock_mgr.executor = None  # skip async storage
 
         from src.services.bedrock_service import BedrockService
 
@@ -54,7 +53,6 @@ class TestBedrockService:
         mock_mgr = MagicMock()
         mock_aws_cls.return_value = mock_mgr
         mock_mgr.bedrock_client.converse.return_value = mock_converse_text_only_response
-        mock_mgr.executor = None
 
         from src.services.bedrock_service import BedrockService
 
@@ -87,7 +85,6 @@ class TestBedrockService:
             "metrics": {"latencyMs": 800},
         }
         mock_mgr.bedrock_client.converse.return_value = response
-        mock_mgr.executor = None
 
         from src.services.bedrock_service import BedrockService
 
@@ -121,7 +118,6 @@ class TestBedrockService:
         mock_mgr = MagicMock()
         mock_aws_cls.return_value = mock_mgr
         mock_mgr.bedrock_client.converse.return_value = {"output": {}}
-        mock_mgr.executor = None
 
         from src.services.bedrock_service import BedrockService
 
@@ -130,26 +126,7 @@ class TestBedrockService:
             service.converse([{"role": "user", "content": [{"text": "test"}]}])
 
     @patch("src.services.bedrock_service.AWSClientManager")
-    def test_store_response_async_submits_to_executor(
-        self,
-        mock_aws_cls: MagicMock,
-        mock_converse_response: dict,  # type: ignore[type-arg]
-    ) -> None:
-        mock_mgr = MagicMock()
-        mock_aws_cls.return_value = mock_mgr
-        mock_mgr.bedrock_client.converse.return_value = mock_converse_response
-        mock_executor = MagicMock()
-        mock_mgr.executor = mock_executor
-
-        from src.services.bedrock_service import BedrockService
-
-        service = BedrockService()
-        service.converse([{"role": "user", "content": [{"text": "test"}]}])
-
-        mock_executor.submit.assert_called_once()
-
-    @patch("src.services.bedrock_service.AWSClientManager")
-    def test_store_response_sync_stores_correct_keys(self, mock_aws_cls: MagicMock) -> None:
+    def test_store_response_stores_correct_keys(self, mock_aws_cls: MagicMock) -> None:
         mock_mgr = MagicMock()
         mock_aws_cls.return_value = mock_mgr
 
@@ -164,7 +141,7 @@ class TestBedrockService:
             latency_ms=500,
         )
 
-        service._store_response_sync(messages, result)
+        service._store_response(messages, result)
 
         calls = mock_mgr.s3_client.put_object.call_args_list
         assert len(calls) == 3  # request, image, response
@@ -186,7 +163,7 @@ class TestBedrockService:
         result = ConverseResult(text="ok", image_bytes=b"img")
 
         # Should not raise
-        service._store_response_sync(messages, result)
+        service._store_response(messages, result)
 
     @patch("src.services.bedrock_service.AWSClientManager")
     def test_inference_config_omitted_when_none(
@@ -197,7 +174,6 @@ class TestBedrockService:
         mock_mgr = MagicMock()
         mock_aws_cls.return_value = mock_mgr
         mock_mgr.bedrock_client.converse.return_value = mock_converse_text_only_response
-        mock_mgr.executor = None
 
         from src.services.bedrock_service import BedrockService
 
@@ -219,7 +195,6 @@ class TestBedrockService:
         mock_mgr = MagicMock()
         mock_aws_cls.return_value = mock_mgr
         mock_mgr.bedrock_client.converse.return_value = mock_converse_text_only_response
-        mock_mgr.executor = None
 
         from src.services.bedrock_service import BedrockService
 

@@ -11,7 +11,7 @@
  * 5. Updates frontend .env file with PUBLIC_API_URL
  */
 
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -64,7 +64,7 @@ STACK_NAME=${config.STACK_NAME}
 AWS_REGION=${config.AWS_REGION}
 
 # Include Dev Origins (allows all origins for local development)
-INCLUDE_DEV_ORIGINS=${config.INCLUDE_DEV_ORIGINS || 'true'}
+INCLUDE_DEV_ORIGINS=${config.INCLUDE_DEV_ORIGINS || 'false'}
 
 # Production Origins (comma-separated list of allowed origins for CORS)
 PRODUCTION_ORIGINS=${config.PRODUCTION_ORIGINS || ''}
@@ -142,8 +142,13 @@ function execCommand(command, cwd = BACKEND_DIR) {
 
 function getStackOutputs(stackName, region) {
   try {
-    const command = `aws cloudformation describe-stacks --stack-name ${stackName} --region ${region} --query 'Stacks[0].Outputs' --output json`;
-    const output = execSync(command, { encoding: 'utf8' });
+    const output = execFileSync('aws', [
+      'cloudformation', 'describe-stacks',
+      '--stack-name', stackName,
+      '--region', region,
+      '--query', 'Stacks[0].Outputs',
+      '--output', 'json'
+    ], { encoding: 'utf8' });
     return JSON.parse(output);
   } catch (error) {
     console.error('Failed to get stack outputs');
@@ -161,7 +166,7 @@ async function deploy() {
   const defaults = {
     STACK_NAME: config.STACK_NAME || 'omni-image',
     AWS_REGION: config.AWS_REGION || 'us-west-2',
-    INCLUDE_DEV_ORIGINS: config.INCLUDE_DEV_ORIGINS || 'true',
+    INCLUDE_DEV_ORIGINS: config.INCLUDE_DEV_ORIGINS || 'false',
     PRODUCTION_ORIGINS: config.PRODUCTION_ORIGINS || '',
   };
 
@@ -169,8 +174,8 @@ async function deploy() {
   const stackNameInput = await ask(`Stack Name [${defaults.STACK_NAME}]: `);
   config.STACK_NAME = stackNameInput.trim() || defaults.STACK_NAME;
 
-  if (!/^[a-z][a-z0-9-]*$/.test(config.STACK_NAME)) {
-    console.error('Stack name must start with lowercase letter and contain only lowercase letters, numbers, and hyphens');
+  if (!/^[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(config.STACK_NAME)) {
+    console.error('Stack name must start with a lowercase letter, end with a letter or digit, contain only lowercase letters, numbers, and hyphens, and be at most 63 characters');
     rl.close();
     process.exit(1);
   }
@@ -206,11 +211,15 @@ async function deploy() {
   console.log(`Checking deployment bucket: ${deployBucket}...`);
 
   try {
-    execSync(`aws s3 ls s3://${deployBucket} --region ${config.AWS_REGION}`, { stdio: 'ignore' });
+    execFileSync('aws', ['s3', 'ls', `s3://${deployBucket}`, '--region', config.AWS_REGION], { stdio: 'ignore' });
     console.log('Deployment bucket exists\n');
   } catch {
     console.log('Creating deployment bucket...');
-    execCommand(`aws s3 mb s3://${deployBucket} --region ${config.AWS_REGION}`);
+    execFileSync('aws', ['s3', 'mb', `s3://${deployBucket}`, '--region', config.AWS_REGION], {
+      cwd: BACKEND_DIR,
+      stdio: 'inherit',
+      env: process.env
+    });
   }
 
   // Build Lambda function
@@ -220,8 +229,19 @@ async function deploy() {
   // Deploy to AWS
   console.log('\nDeploying to AWS...\n');
   const productionOrigins = config.PRODUCTION_ORIGINS || '';
-  const paramOverrides = `StackName="${config.STACK_NAME}" IncludeDevOrigins="${config.INCLUDE_DEV_ORIGINS}" ProductionOrigins="${productionOrigins}"`;
-  execCommand(`sam deploy --parameter-overrides ${paramOverrides}`);
+  const paramOverrides = `StackName=${config.STACK_NAME} IncludeDevOrigins=${config.INCLUDE_DEV_ORIGINS} ProductionOrigins=${productionOrigins}`;
+
+  console.log(`Executing: sam deploy --parameter-overrides ${paramOverrides}\n`);
+  try {
+    execFileSync('sam', ['deploy', '--parameter-overrides', paramOverrides], {
+      cwd: BACKEND_DIR,
+      stdio: 'inherit',
+      env: process.env
+    });
+  } catch (error) {
+    console.error('sam deploy failed');
+    process.exit(1);
+  }
 
   // Get stack outputs
   console.log('\nRetrieving stack outputs...\n');

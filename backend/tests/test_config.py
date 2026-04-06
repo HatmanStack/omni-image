@@ -27,15 +27,22 @@ class TestAppConfig:
                 AppConfig()
 
     def test_default_values(self) -> None:
-        from src.models.config import get_config
+        from src.models.config import get_config, reset_config
 
-        config = get_config()
-        assert config.rate_limit == 10
-        assert config.rate_limit_window == 3600
-        assert config.bedrock_timeout == 120
-        assert config.nova_omni_model == "us.amazon.nova-2-omni-v1:0"
-        assert config.log_level == "INFO"
-        assert config.allowed_origins == "*"
+        reset_config()
+        saved = os.environ.pop("ALLOWED_ORIGINS", None)
+        try:
+            config = get_config()
+            assert config.rate_limit == 10
+            assert config.rate_limit_window == 3600
+            assert config.bedrock_timeout == 120
+            assert config.nova_omni_model == "us.amazon.nova-2-omni-v1:0"
+            assert config.log_level == "INFO"
+            assert config.allowed_origins == ""
+        finally:
+            if saved is not None:
+                os.environ["ALLOWED_ORIGINS"] = saved
+            reset_config()
 
     def test_env_var_override_rate_limit(self) -> None:
         from src.models.config import AppConfig, reset_config

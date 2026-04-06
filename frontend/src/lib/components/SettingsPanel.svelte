@@ -90,14 +90,14 @@
 						id="temperature"
 						type="range"
 						aria-label="Temperature"
-						value={settings.temperature ?? 0.5}
+						value={settings.temperature ?? ''}
 						oninput={(e) => handleSliderInput('temperature', e)}
 						min="0"
 						max="1"
 						step="0.1"
 					/>
 					<span class="value-display"
-						>{settings.temperature?.toFixed(1) ?? '-'}</span
+						>{settings.temperature !== undefined ? settings.temperature.toFixed(1) : '-'}</span
 					>
 					<button
 						class="reset-btn"
@@ -116,13 +116,13 @@
 						id="topP"
 						type="range"
 						aria-label="Top P"
-						value={settings.topP ?? 0.5}
+						value={settings.topP ?? ''}
 						oninput={(e) => handleSliderInput('topP', e)}
 						min="0"
 						max="1"
 						step="0.1"
 					/>
-					<span class="value-display">{settings.topP?.toFixed(1) ?? '-'}</span>
+					<span class="value-display">{settings.topP !== undefined ? settings.topP.toFixed(1) : '-'}</span>
 					<button
 						class="reset-btn"
 						onclick={() => resetSetting('topP')}

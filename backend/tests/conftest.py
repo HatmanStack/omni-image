@@ -12,6 +12,7 @@ os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "test-secret-key")
 os.environ.setdefault("AWS_REGION", "us-west-2")
 os.environ.setdefault("NOVA_IMAGE_BUCKET", "test-bucket")
 os.environ.setdefault("BEDROCK_REGION", "us-west-2")
+os.environ.setdefault("ALLOWED_ORIGINS", "*")
 
 
 @pytest.fixture(autouse=True)
